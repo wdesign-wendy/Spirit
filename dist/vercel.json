@@ -1,0 +1,20 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "buildCommand": "",
+  "outputDirectory": ".",
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {"key": "Content-Security-Policy", "value": "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; connect-src 'self' https://qevoxzrcoabtuakywyzd.supabase.co wss://qevoxzrcoabtuakywyzd.supabase.co; img-src 'self' data:; font-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"},
+        {"key": "Referrer-Policy", "value": "no-referrer"},
+        {"key": "X-Frame-Options", "value": "DENY"},
+        {"key": "X-Content-Type-Options", "value": "nosniff"},
+        {"key": "Permissions-Policy", "value": "camera=(), microphone=(self), geolocation=()"},
+        {"key": "Strict-Transport-Security", "value": "max-age=31536000"},
+        {"key": "Cache-Control", "value": "no-store"}
+      ]
+    }
+  ]
+}

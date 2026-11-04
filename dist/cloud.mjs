@@ -1,0 +1,106 @@
+import {config} from './config.js';
+import {createSupabaseStore} from './supabase-store.mjs';
+import {createVault} from './vault.mjs';
+
+export function cloudMode(location,settings=config){
+ const url=new URL(location.href),local=['127.0.0.1','localhost','[::1]'].includes(url.hostname)||url.protocol==='file:';
+ return !local||settings.storage==='supabase'||url.searchParams.get('storage')==='cloud'||url.searchParams.has('flow')||/type=(invite|recovery)/.test(url.hash);
+}
+export async function startCloud({helpers,onSessionEnd,beforeLogout,settings=config,createClient:injectedClient}={}){
+ const local=['127.0.0.1','localhost','[::1]'].includes(location.hostname)||location.protocol==='file:';
+ const controls=document.createElement('div');controls.id='account-controls';controls.className='account-controls';document.querySelector('.header-actions').append(controls);
+ const localUrl=new URL(location.href);localUrl.search='';localUrl.hash='';
+ if(!cloudMode(location,settings)){
+  const link=document.createElement('a'),url=new URL(location.href);url.searchParams.set('storage','cloud');link.href=url.href;link.textContent='클라우드 로그인';link.className='action-button';controls.append(link);return null;
+ }
+ document.body.classList.add('auth-required');
+ const gate=document.createElement('section');gate.className='auth-gate';gate.setAttribute('aria-label','SPIRIT 로그인');gate.innerHTML=`<div class="auth-panel"><div class="auth-brand"></div><p class="auth-eyebrow">나의 발표 연습 공간</p><h1 id="auth-title">로그인</h1><p id="auth-description">허용 명단에 등록하고 초대한 계정만 사용할 수 있어요.</p><form id="auth-form"><label id="auth-email-label">이메일<input id="auth-email" name="email" type="email" autocomplete="username" required></label><label id="auth-password-label"><span id="auth-password-title">비밀번호</span><input id="auth-password" name="password" type="password" autocomplete="current-password" required></label><label id="auth-confirm-label" hidden>비밀번호 확인<input id="auth-confirm" name="confirm" type="password" autocomplete="new-password"></label><p id="auth-vault-note" hidden>예전 대본을 열기 위한 비밀번호입니다. 이전을 마치면 로그인 비밀번호만 사용합니다.</p><button class="primary" id="auth-submit" type="submit" disabled>연결 중…</button></form><p id="auth-message" role="status" aria-live="polite"></p><button id="auth-reset" class="auth-text-button" type="button">비밀번호를 잊으셨나요?</button><button id="auth-switch" class="auth-text-button" type="button" hidden>다른 계정으로 로그인</button><p class="auth-invite-note">초대받은 계정만 들어올 수 있어요. 공용 컴퓨터에서는 꼭 로그아웃하세요.</p><div class="auth-local"></div></div>`;
+ const logo=document.querySelector('aside .brand svg')?.cloneNode(true);if(logo)gate.querySelector('.auth-brand').append(logo);document.body.append(gate);
+ if(local)for(const parent of [gate.querySelector('.auth-local'),controls]){const a=document.createElement('a');a.href=localUrl.href;a.textContent='기존 로컬 대본 (암호화 전)';a.className='auth-text-button';parent.append(a);}
+ const q=id=>gate.querySelector('#'+id),form=q('auth-form'),submit=q('auth-submit');
+ const tell=t=>q('auth-message').textContent=t;
+ const deadline=promise=>{let timer;return Promise.race([promise,new Promise((_,reject)=>timer=setTimeout(()=>reject(Error('network')),10000))]).finally(()=>clearTimeout(timer));};
+ let client,activeStore=null,activeVault=null,activeId=null,pending=null,authorizing=false,resolved=false,mode='login',generation=0,checking=false,submitting=false;
+ let resolveReady;const ready=new Promise(resolve=>resolveReady=resolve);
+ const initial=new URL(location.href),hash=new URLSearchParams(initial.hash.slice(1));
+ let needsPassword=initial.searchParams.get('flow')==='set-password'||['invite','recovery'].includes(hash.get('type'));
+ const projectId=new URL(settings.supabaseUrl).hostname.split('.')[0];
+ const show=()=>{gate.hidden=false;form.hidden=false;document.body.classList.add('auth-required');document.body.dataset.view='auth';};
+ const hide=()=>{gate.hidden=true;document.body.classList.remove('auth-required');};
+ function setMode(next){
+  mode=next;fresh.hidden=next!=='vault';const setting=next==='password',reset=next==='reset',vault=next==='vault';
+  q('auth-title').textContent=vault?(pending?.fresh?'대본 잠금 만들기':'예전 잠금 비밀번호로 열기'):setting?'비밀번호 설정':reset?'비밀번호 재설정':'로그인';
+  q('auth-description').textContent=vault?'예전에 암호화한 대본을 한 번만 열어 이전하세요.':setting?'초대받은 계정의 로그인 비밀번호를 정해주세요.':reset?'초대받은 이메일로 재설정 링크를 보내드려요.':'허용 명단에 등록하고 초대한 계정만 사용할 수 있어요.';
+  q('auth-email-label').hidden=setting||vault;q('auth-email').required=!setting&&!vault;
+  q('auth-password-title').textContent=vault?'대본 잠금 비밀번호 (12자 이상)':'비밀번호';
+  q('auth-password-label').hidden=reset;q('auth-password').required=!reset;q('auth-password').minLength=vault?12:setting?8:0;
+  q('auth-password').autocomplete=vault?'off':setting?'new-password':'current-password';q('auth-password').name=vault?'vault-passphrase':'password';q('auth-password').value='';
+  const confirm=setting||(vault&&pending?.fresh);q('auth-confirm-label').hidden=!confirm;q('auth-confirm').required=confirm;q('auth-confirm').value='';q('auth-vault-note').hidden=!vault;
+  q('auth-switch').hidden=!vault&&!setting;gate.querySelector('.auth-invite-note').hidden=vault||setting;q('auth-reset').hidden=setting||vault;q('auth-reset').textContent=reset?'로그인으로 돌아가기':'비밀번호를 잊으셨나요?';
+  submit.textContent=vault?(pending?.fresh?'잠금 설정하고 시작':'대본 열기'):setting?'비밀번호 저장':reset?'재설정 메일 보내기':'로그인';submit.disabled=!client;tell('');
+ }
+ function clearLink(){const u=new URL(location.href);u.hash='';u.searchParams.delete('flow');history.replaceState(null,'',u.href);}
+ function endSession(reason='다시 로그인해 주세요.'){
+  generation++;void activeStore?.clearAccountCache();activeVault?.lock();activeStore=activeVault=null;activeId=null;pending=null;authorizing=false;
+  q('auth-password').value='';q('auth-confirm').value='';controls.querySelectorAll('button,.account-email').forEach(n=>n.remove());onSessionEnd?.();show();setMode('login');tell(reason);
+  // End authorized access and discard rendered account state. SDK removes its own session.
+  void client?.auth.signOut({scope:'local'});
+ }
+ async function access(session){
+  const {data,error}=await deadline(client.auth.getUser());if(error||!data?.user||data.user.id!==session?.user?.id)throw Error('auth');
+  const result=await deadline(client.rpc('spirit_access_status'));if(result.error)throw Error('setup');if(result.data!==true)throw Error('denied');return data.user;
+ }
+ async function authorize(session){
+  if(!session?.user||authorizing||activeId===session.user.id||pending?.user.id===session.user.id)return;
+  if(resolved&&!activeId){location.reload();return;}
+  if(activeId&&activeId!==session.user.id){endSession();return;}
+  const epoch=generation;authorizing=true;
+  try{
+   const user=await access(session);if(epoch!==generation)return;
+   if(needsPassword){setMode('password');show();return;}
+   const remote=await client.from('spirit_states').select('state,version').eq('user_id',user.id).maybeSingle();if(remote.error)throw Error('setup');if(epoch!==generation)return;
+   const raw=localStorage.getItem(`spirit-cloud:${projectId}:${user.id}:draft`);
+   if(remote.data?.state?.format==='spirit-vault-v1'){pending={user,session,remote:remote.data.state,version:remote.data.version,raw,fresh:false};setMode('vault');show();}else{finish(user);}
+  }catch(error){pending=null;show();setMode('login');tell(error.message==='denied'?'이 계정은 허용 명단에 없거나 초대가 취소되었습니다. 관리자에게 문의해 주세요.':error.message==='setup'?'접근 권한을 확인하지 못했습니다. SQL 적용과 네트워크를 확인해 주세요.':'로그인 정보를 확인하지 못했습니다. 다시 로그인해 주세요.');}
+  finally{authorizing=false;}
+ }
+ function finish(user,vault){
+  activeId=user.id;activeVault=vault;
+  activeStore=createSupabaseStore({client,userId:activeId,projectId,storage:localStorage,...helpers,vault,onAccessDenied:()=>endSession('접근 권한이 취소되었습니다.')});
+  const email=document.createElement('span');email.className='account-email';email.textContent=user.email||'내 계정';email.title=email.textContent;controls.prepend(email);
+  
+  const logout=document.createElement('button');logout.textContent='로그아웃';logout.className='action-button';logout.onclick=async()=>{logout.disabled=true;try{await beforeLogout?.();await activeStore?.clearAccountCache();const {error}=await client.auth.signOut({scope:'local'});if(error)throw error;}catch{logout.disabled=false;alert('저장 완료와 네트워크를 확인한 뒤 다시 시도해 주세요.');}};controls.prepend(logout);
+  hide();resolved=true;resolveReady({store:activeStore,showLoadError(error){show();form.hidden=true;q('auth-reset').hidden=true;q('auth-title').textContent='대본을 열지 못했어요';q('auth-description').textContent='저장된 대본은 변경하지 않았습니다.';tell(error.message);const retry=document.createElement('button');retry.className='primary';retry.textContent='다시 연결';retry.onclick=()=>location.reload();gate.querySelector('.auth-panel').append(retry,logout);}});
+ }
+ async function checkCurrent(){if(!activeStore||checking)return;checking=true;try{await activeStore.checkAccess();}catch{endSession('접근 권한을 확인할 수 없어 잠갔습니다.');}finally{checking=false;}}
+ const timer=setInterval(checkCurrent,30000);window.addEventListener('pagehide',()=>{clearInterval(timer);activeStore?.invalidate();activeVault?.lock();});window.addEventListener('pageshow',e=>{if(e.persisted)location.reload();});
+ document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')checkCurrent();});
+ q('auth-switch').onclick=async()=>{await client.auth.signOut({scope:'local'});clearLink();location.reload();};
+ const fresh=document.createElement('button');fresh.type='button';fresh.className='auth-text-button';fresh.textContent='이 계정을 빈 상태로 새로 시작';fresh.hidden=true;gate.querySelector('.auth-panel').append(fresh);fresh.onclick=()=>{if(!pending)return;pending.state=helpers.emptyState();mode='migrate';q('auth-password-label').hidden=true;q('auth-password').required=false;submit.textContent='빈 상태를 새 버전으로 저장';tell('기존 서버 대본을 빈 상태의 새 버전으로 바꿉니다. 예전 기기 캐시와 백업은 보존합니다. 계속하려면 저장 버튼을 누르세요.');};
+ q('auth-reset').onclick=()=>setMode(mode==='reset'?'login':'reset');
+ form.onsubmit=async event=>{
+  event.preventDefault();if(!client||submitting)return;submitting=true;submit.disabled=true;tell('');
+  try{
+   if(mode==='reset'){const redirect=new URL(localUrl.href);redirect.searchParams.set('storage','cloud');redirect.searchParams.set('flow','set-password');const {error}=await client.auth.resetPasswordForEmail(q('auth-email').value.trim(),{redirectTo:redirect.href});if(error)throw error;tell('등록된 이메일이면 재설정 링크가 발송됩니다. 메일함을 확인해 주세요.');}
+   else if(mode==='password'){
+    if(q('auth-password').value!==q('auth-confirm').value)throw Error('password_mismatch');const {data:s}=await client.auth.getSession();await access(s.session);const {error}=await client.auth.updateUser({password:q('auth-password').value});if(error)throw error;q('auth-password').value='';q('auth-confirm').value='';needsPassword=false;clearLink();authorizing=false;await authorize(s.session);
+   }else if(mode==='vault'){
+    const p=pending,epoch=generation;if(!p)throw Error('auth');if(p.fresh&&q('auth-password').value!==q('auth-confirm').value)throw Error('password_mismatch');
+    const secret=q('auth-password').value;q('auth-password').value='';q('auth-confirm').value='';let vault;
+    try{await access(p.session);vault=await createVault({passphrase:secret,projectId,userId:p.user.id});if(p.remote)await vault.open(p.remote,'state');if(p.raw){try{await vault.open(JSON.parse(p.raw),'cache')}catch{}}if(epoch!==generation){vault.lock();return;}const state=await vault.open(p.remote,'state');if(!helpers.toState(state))throw Error('대본 형식이 올바르지 않습니다.');pending.state=state;vault.lock();submit.textContent='평문으로 다시 저장';mode='migrate';q('auth-password-label').hidden=true;q('auth-password').required=false;tell('내용을 열었습니다. 평문으로 다시 저장을 누르면 로그인만으로 대본을 볼 수 있습니다.');}catch(error){vault?.lock();throw error;}
+   }else if(mode==='migrate'){const p=pending,epoch=generation;await access(p.session);if(epoch!==generation)return;const r=await client.rpc('save_spirit_state',{expected_version:p.version,next_state:p.state,expected_user_id:p.user.id});if(r.error)throw Error(r.error.code==='40001'?'다른 기기에서 저장했습니다. 새로고침 후 다시 이전하세요.':'이전 저장에 실패했습니다. SQL 003 적용을 확인하세요.');if(epoch!==generation)return;pending=null;finish(p.user);
+   }else{const {data,error}=await client.auth.signInWithPassword({email:q('auth-email').value.trim(),password:q('auth-password').value});q('auth-password').value='';if(error)throw error;await authorize(data.session);}
+  }catch(error){tell(error.message==='password_mismatch'?'비밀번호가 서로 다릅니다.':['vault','migrate'].includes(mode)?error.message:mode==='login'?'이메일과 비밀번호를 확인해 주세요. 허용된 초대 계정만 사용할 수 있습니다.':'요청을 완료하지 못했습니다. 초대 링크·접근 권한·네트워크를 확인해 주세요.');}
+  finally{submitting=false;submit.disabled=false;}
+ };
+ try{
+  if(!local&&location.protocol!=='https:')throw Error('https');
+  const createClient=injectedClient||(await import(settings.sdkUrl)).createClient;
+  client=createClient(settings.supabaseUrl,settings.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:'implicit',storageKey:'sb-'+projectId+'-auth-token'}});
+  client.auth.onAuthStateChange((event,session)=>{if(event==='SIGNED_OUT'){if(activeId||pending)queueMicrotask(()=>endSession());return;}if(event==='PASSWORD_RECOVERY'){needsPassword=true;queueMicrotask(()=>authorize(session));return;}if(event==='SIGNED_IN')queueMicrotask(()=>authorize(session));});
+  setMode(needsPassword?'password':'login');const {data,error}=await client.auth.getSession();if(error)throw error;
+  if(hash.has('error')||initial.searchParams.has('error')){clearLink();tell('링크가 만료되었거나 올바르지 않습니다. 다시 초대받거나 비밀번호 재설정을 요청해 주세요.');}
+  else if(needsPassword&&!data.session)tell('초대 또는 재설정 메일의 링크를 다시 열어주세요.');else await authorize(data.session);
+ }catch{submit.disabled=true;submit.textContent='연결하지 못했어요';tell('안전한 로그인 서비스를 불러오지 못했습니다. HTTPS 주소와 네트워크를 확인해 주세요.');}
+ return ready;
+}
