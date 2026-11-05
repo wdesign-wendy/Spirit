@@ -14,10 +14,37 @@ export async function startCloud({helpers,onSessionEnd,beforeLogout,settings=con
   const link=document.createElement('a'),url=new URL(location.href);url.searchParams.set('storage','cloud');link.href=url.href;link.textContent='클라우드 로그인';link.className='action-button';controls.append(link);return null;
  }
  document.body.classList.add('auth-required');
- const gate=document.createElement('section');gate.className='auth-gate';gate.setAttribute('aria-label','SPIRIT 로그인');gate.innerHTML=`<div class="auth-panel"><div class="auth-brand"></div><p class="auth-eyebrow">나의 발표 연습 공간</p><h1 id="auth-title">로그인</h1><p id="auth-description">허용 명단에 등록하고 초대한 계정만 사용할 수 있어요.</p><form id="auth-form"><label id="auth-email-label">이메일<input id="auth-email" name="email" type="email" autocomplete="username" required></label><label id="auth-password-label"><span id="auth-password-title">비밀번호</span><input id="auth-password" name="password" type="password" autocomplete="current-password" required></label><label id="auth-confirm-label" hidden>비밀번호 확인<input id="auth-confirm" name="confirm" type="password" autocomplete="new-password"></label><p id="auth-vault-note" hidden>예전 대본을 열기 위한 비밀번호입니다. 이전을 마치면 로그인 비밀번호만 사용합니다.</p><button class="primary" id="auth-submit" type="submit" disabled>연결 중…</button></form><p id="auth-message" role="status" aria-live="polite"></p><button id="auth-reset" class="auth-text-button" type="button">비밀번호를 잊으셨나요?</button><button id="auth-switch" class="auth-text-button" type="button" hidden>다른 계정으로 로그인</button><p class="auth-invite-note">초대받은 계정만 들어올 수 있어요. 공용 컴퓨터에서는 꼭 로그아웃하세요.</p><div class="auth-local"></div></div>`;
+ const gate=document.createElement('section');gate.className='auth-gate';gate.setAttribute('aria-label','SPIRIT 로그인');gate.innerHTML=`
+ <div class="auth-brand-side">
+  <div class="auth-brand"></div>
+  <div class="auth-pitch">
+   <p class="auth-eyebrow">나만의 대본 연습 공간</p>
+   <h2>한 문장씩,<br>내 목소리로 외우는<br>발표 대본</h2>
+   <ul class="auth-features">
+    <li><span class="auth-feature-icon"><img src="icons/auth-shield.svg" alt="" width="20" height="20"></span><div><strong>내 계정만</strong><p>대본은 내 계정으로 로그인해야만 열려요.</p></div></li>
+    <li><span class="auth-feature-icon"><img src="icons/auth-lock.svg" alt="" width="20" height="20"></span><div><strong>초대받은 사람만</strong><p>허용 명단에 있는 이메일만 들어올 수 있어요.</p></div></li>
+    <li><span class="auth-feature-icon"><img src="icons/auth-devices.svg" alt="" width="20" height="20"></span><div><strong>PC와 휴대폰에서</strong><p>어디서든 이어서 연습해요.</p></div></li>
+   </ul>
+  </div>
+  <div class="auth-local auth-local-desktop"></div>
+ </div>
+ <div class="auth-form-side"><div class="auth-panel">
+  <p class="auth-eyebrow auth-mobile-eyebrow">나만의 대본 연습 공간</p><h1 id="auth-title">로그인</h1><p id="auth-description">초대받은 계정만 사용할 수 있어요.</p>
+  <form id="auth-form">
+   <label id="auth-email-label">이메일<input id="auth-email" name="email" type="email" autocomplete="username" placeholder="name@example.com" required></label>
+   <div id="auth-password-label" class="auth-password-field"><label for="auth-password" id="auth-password-title">비밀번호</label><div class="auth-password-input"><input id="auth-password" name="password" type="password" autocomplete="current-password" required><button id="auth-password-toggle" type="button" aria-label="비밀번호 보기" aria-pressed="false"><img src="icons/auth-eye.svg" alt="" width="18" height="18"></button></div></div>
+   <label id="auth-confirm-label" hidden>비밀번호 확인<input id="auth-confirm" name="confirm" type="password" autocomplete="new-password"></label>
+   <p id="auth-vault-note" hidden>예전 대본을 열기 위한 비밀번호입니다. 이전을 마치면 로그인 비밀번호만 사용합니다.</p>
+   <button class="primary" id="auth-submit" type="submit" disabled>연결 중…</button>
+  </form>
+  <p id="auth-message" role="status" aria-live="polite"></p><button id="auth-reset" class="auth-text-button" type="button">비밀번호를 잊으셨나요?</button><button id="auth-switch" class="auth-text-button" type="button" hidden>다른 계정으로 로그인</button>
+ </div></div>
+ <div class="auth-footer"><div class="auth-invite-note"><img src="icons/auth-note-shield.svg" alt="" width="20" height="20"><div><strong>내 계정으로만 열려요</strong><p>초대받은 계정만 들어올 수 있어요. 공용 컴퓨터에서는 꼭 로그아웃하세요.</p></div></div><div class="auth-local auth-local-mobile"></div></div>`;
  const logo=document.querySelector('aside .brand svg')?.cloneNode(true);if(logo)gate.querySelector('.auth-brand').append(logo);document.body.append(gate);
- if(local)for(const parent of [gate.querySelector('.auth-local'),controls]){const a=document.createElement('a');a.href=localUrl.href;a.textContent='기존 로컬 대본 (암호화 전)';a.className='auth-text-button';parent.append(a);}
+ if(local)for(const parent of [...gate.querySelectorAll('.auth-local'),controls]){const a=document.createElement('a');a.href=localUrl.href;a.textContent='이 기기의 기존 대본 열기 (암호화 전)';a.className='auth-text-button';parent.append(a);}
  const q=id=>gate.querySelector('#'+id),form=q('auth-form'),submit=q('auth-submit');
+ const passwordToggle=q('auth-password-toggle');
+ passwordToggle.onclick=()=>{const input=q('auth-password'),visible=input.type==='password';input.type=visible?'text':'password';passwordToggle.setAttribute('aria-pressed',String(visible));passwordToggle.setAttribute('aria-label',visible?'비밀번호 숨기기':'비밀번호 보기');};
  const tell=t=>q('auth-message').textContent=t;
  const deadline=promise=>{let timer;return Promise.race([promise,new Promise((_,reject)=>timer=setTimeout(()=>reject(Error('network')),10000))]).finally(()=>clearTimeout(timer));};
  let client,activeStore=null,activeVault=null,activeId=null,pending=null,authorizing=false,resolved=false,mode='login',generation=0,checking=false,submitting=false;
@@ -30,9 +57,10 @@ export async function startCloud({helpers,onSessionEnd,beforeLogout,settings=con
  const show=()=>{gate.hidden=false;form.hidden=false;document.body.classList.add('auth-required');document.body.dataset.view='auth';};
  const hide=()=>{gate.hidden=true;document.body.classList.remove('auth-required');};
  function setMode(next){
-  mode=next;fresh.hidden=next!=='vault';const setting=next==='password',reset=next==='reset',vault=next==='vault';
+  q('auth-password').type='password';passwordToggle.setAttribute('aria-pressed','false');passwordToggle.setAttribute('aria-label','비밀번호 보기');
+  mode=next;gate.dataset.mode=next;fresh.hidden=next!=='vault';const setting=next==='password',reset=next==='reset',vault=next==='vault';
   q('auth-title').textContent=vault?(pending?.fresh?'대본 잠금 만들기':'예전 잠금 비밀번호로 열기'):setting?'비밀번호 설정':reset?'비밀번호 재설정':'로그인';
-  q('auth-description').textContent=vault?'예전에 암호화한 대본을 한 번만 열어 이전하세요.':setting?'초대받은 계정의 로그인 비밀번호를 정해주세요.':reset?'초대받은 이메일로 재설정 링크를 보내드려요.':'허용 명단에 등록하고 초대한 계정만 사용할 수 있어요.';
+  q('auth-description').textContent=vault?'예전에 암호화한 대본을 한 번만 열어 이전하세요.':setting?'초대받은 계정의 로그인 비밀번호를 정해주세요.':reset?'초대받은 이메일로 재설정 링크를 보내드려요.':'초대받은 계정만 사용할 수 있어요.';
   q('auth-email-label').hidden=setting||vault;q('auth-email').required=!setting&&!vault;
   q('auth-password-title').textContent=vault?'대본 잠금 비밀번호 (12자 이상)':'비밀번호';
   q('auth-password-label').hidden=reset;q('auth-password').required=!reset;q('auth-password').minLength=vault?12:setting?8:0;
