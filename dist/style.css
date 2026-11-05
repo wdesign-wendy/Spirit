@@ -762,3 +762,90 @@ body[data-view="review"] :is(.chapterbar,.tabs,#breadcrumb){display:none}
 header #breadcrumb{margin-right:auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 @media(max-width:700px){#view-navigation{margin-right:6px;gap:2px}#view-navigation button{width:32px;height:32px}}
 @media(max-width:700px){body[data-view="review"] .review-back{margin-top:8px}}
+
+/* Login progress remains visible until authorized manuscripts finish loading. */
+#auth-submit.is-loading{display:flex;align-items:center;justify-content:center;gap:10px;opacity:1;cursor:wait}
+#auth-submit.is-loading::before{content:"";width:16px;height:16px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:auth-spin .8s linear infinite;flex:none}
+.auth-gate[aria-busy="true"] input{opacity:.65}
+@keyframes auth-spin{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){#auth-submit.is-loading::before{animation:none}}
+/* Home (2026-11-05): "Today's Practice" title, no date; screen-history arrows hidden on home only. */
+body[data-view="home"] #view-navigation{display:none}
+.home:not(.is-first) .home-head h1{font-size:40px;line-height:1.2;letter-spacing:-.01em}
+@media(max-width:700px){
+ .home:not(.is-first) .home-head h1{font-size:36px}
+ body[data-view="home"] header{position:absolute;top:0;right:0;height:auto;padding:22px 22px 0;background:transparent}
+ body[data-view="home"] #breadcrumb{display:none}
+}
+/* Home (2026-11-05b): mobile first-time screen simplified; PC first-time unchanged. */
+.first-mobile{display:none}
+@media(max-width:700px){
+ .home.is-first>:not(.first-mobile){display:none!important}
+ .first-mobile{display:flex;flex-direction:column;padding-top:12px}
+ .first-mobile h1{margin:10px 0 0;font-size:34px;line-height:1.25;font-weight:700;letter-spacing:-.01em;color:var(--ink)}
+ .first-mobile p{margin:16px 0 0;font-size:15px;line-height:1.6;color:var(--muted)}
+ .first-mobile .primary{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:52px;margin-top:28px;font-size:16px;font-weight:600}
+ .first-mobile .primary .ui-icon{width:18px;height:18px;flex-basis:18px}
+ .first-mobile .text-action{width:100%;min-height:48px;margin-top:6px;border-color:transparent;background:transparent;color:var(--ink);font-size:15px;font-weight:600}
+ .first-mobile h2{margin:40px 0 14px;font-size:13px;font-weight:500;color:var(--muted)}
+ .first-mobile ol{display:flex;flex-direction:column;gap:14px;margin:0;padding:0;list-style:none}
+ .first-mobile li{display:flex;align-items:center;gap:14px;font-size:15px;color:var(--ink)}
+ .first-mobile li b{display:inline-flex;align-items:center;justify-content:center;flex:0 0 30px;height:30px;border-radius:50%;background:var(--gold-soft);color:var(--gold-text);font-size:13px;font-weight:700}
+ body[data-first-time] #mobile-nav{display:none!important}
+ body[data-first-time]{padding-bottom:calc(32px + env(safe-area-inset-bottom))}
+}
+/* 새 발표 dialog (Figma 09 · N1–N4): centered modal on PC, bottom sheet on mobile. */
+.newpres{border:0;padding:0;border-radius:24px;width:min(440px,calc(100% - 40px));max-height:calc(100dvh - 40px);background:var(--manuscript);color:var(--ink);box-shadow:0 15px 60px rgba(43,30,23,.18);font-family:Pretendard,-apple-system,sans-serif}
+.newpres::backdrop{background:rgba(43,30,23,.4)}
+.newpres-form{display:flex;flex-direction:column;gap:18px;padding:26px 22px 20px}
+.newpres-head{display:flex;align-items:center;justify-content:space-between}
+.newpres-head h2{margin:0;font-size:20px;font-weight:700;letter-spacing:-.01em}
+.newpres-head .text-action{min-height:40px;padding:0 10px;border-color:transparent;background:transparent;color:var(--ink);font-size:14px;font-weight:600}
+.newpres-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.np-field{display:flex;flex-direction:column;gap:8px;min-width:0;font-size:12px;font-weight:600;color:var(--muted)}
+.np-field :is(select,input){box-sizing:border-box;width:100%;min-height:48px;padding:0 16px;border:1px solid var(--line);border-radius:14px;background-color:var(--manuscript);color:var(--ink);font:400 15px Pretendard,-apple-system,sans-serif}
+.np-field select{appearance:none;padding-right:40px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256' fill='%232E2621'%3E%3Cpath d='M205.66 149.66l-72 72a8 8 0 0 1-11.32 0l-72-72a8 8 0 0 1 11.32-11.32L120 196.69V40a8 8 0 0 1 16 0v156.69l58.34-58.35a8 8 0 0 1 11.32 11.32Z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 16px center;background-size:16px}
+.np-field :is(select,input):focus-visible{outline:2px solid var(--gold-text);outline-offset:1px}
+.np-methods,.np-lang{display:flex;flex-direction:column;gap:10px;min-width:0;margin:0;padding:0;border:0}
+.np-methods legend,.np-lang legend{margin-bottom:10px;padding:0;font-size:12px;font-weight:600;color:var(--muted)}
+.np-card{display:flex;align-items:flex-start;gap:12px;padding:16px;border-radius:16px;background:var(--selected);box-shadow:inset 0 0 0 2px transparent;cursor:pointer}
+.np-card:has(input:checked){background:var(--gold-soft);box-shadow:inset 0 0 0 2px var(--gold)}
+.np-card:has(input:focus-visible){outline:2px solid var(--gold-text);outline-offset:2px}
+.np-card input{appearance:none;flex:0 0 20px;width:20px;height:20px;margin:2px 0 0;border:2px solid var(--ink);border-radius:50%;background:transparent}
+.np-card input:checked{background:radial-gradient(circle,var(--ink) 0 4px,transparent 5px)}
+.np-card b{display:block;font-size:16px;font-weight:600;color:var(--ink)}
+.np-card small{display:block;margin-top:4px;font-size:13px;line-height:1.55;color:var(--muted)}
+.np-seg{display:grid;grid-template-columns:1fr 1fr;padding:4px;border-radius:999px;background:var(--selected)}
+.np-seg label{position:relative}
+.np-seg input{position:absolute;inset:0;margin:0;opacity:0}
+.np-seg span{display:flex;align-items:center;justify-content:center;min-height:40px;border-radius:999px;font-size:14px;font-weight:600;color:var(--ink);cursor:pointer}
+.np-seg input:checked+span{background:var(--primary);color:var(--on-primary)}
+.np-seg input:focus-visible+span{outline:2px solid var(--gold-text);outline-offset:2px}
+.np-note{margin:0;font-size:13px;line-height:1.55;color:var(--muted)}
+.np-error{margin:0;font-size:13px;color:#b25757}.np-error:empty{display:none}
+.np-create{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:48px;font-size:15px;font-weight:600}
+.np-create .ui-icon{width:18px;height:18px;flex-basis:18px}
+.np-custom{align-self:center;min-height:40px;padding:0 8px;border-color:transparent;background:transparent;color:var(--muted);font-size:13px;text-decoration:underline;text-underline-offset:3px}
+@media(max-width:700px){.newpres{width:100%;max-width:none;margin:auto 0 0;border-radius:24px 24px 0 0;max-height:92dvh}.newpres-form{padding:24px 20px calc(20px + env(safe-area-inset-bottom))}}
+/* Mobile header: Phosphor gear (설정) instead of ⋯, 22px, no circle. */
+@media(max-width:700px){
+ .mobile-global-menu>summary,body:is([data-view="practice"],[data-view="rehearse"]) .mobile-global-menu>summary{display:flex;align-items:center;justify-content:center;width:44px;height:44px;padding:0;border:0;border-radius:50%;background:transparent;color:var(--ink);box-shadow:none}
+ body:is([data-view="practice"],[data-view="rehearse"]) .mobile-global-menu>summary{color:var(--stage-text)}
+ .mobile-global-menu>summary .ui-icon{width:22px;height:22px;flex-basis:22px}
+}
+/* Home breathing room (2026-11-05c): smaller hero title, more space around stats. */
+.home:not(.is-first) .hero h2{font-size:28px;letter-spacing:-.01em}
+.home:not(.is-first) .hero-stats{margin-top:40px;gap:12px 44px}
+.home:not(.is-first) .hero-actions{margin-top:46px}
+@media(max-width:700px){
+ .home:not(.is-first) .home-head{padding-top:14px}
+ .home:not(.is-first) .hero{padding:24px}
+ .home:not(.is-first) .hero h2{font-size:21px}
+ .home:not(.is-first) .hero-stats{margin-top:28px;gap:10px 36px}
+ .home:not(.is-first) .hero-actions{margin-top:30px}
+}
+/* Mobile header: gear centered on the logo's optical center (logo 72px: top 15, x-height middle ≈ y33) and on the 20px gutter. */
+@media(max-width:700px){
+ .header-actions{top:10px;right:9px}
+ body:is([data-view="practice"],[data-view="rehearse"]) .header-actions{top:1px}
+}
