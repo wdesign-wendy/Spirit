@@ -782,15 +782,15 @@ body[data-view="home"] #view-navigation{display:none}
 @media(max-width:700px){
  .home.is-first>:not(.first-mobile){display:none!important}
  .first-mobile{display:flex;flex-direction:column;padding-top:12px}
- .first-mobile h1{margin:10px 0 0;font-size:34px;line-height:1.25;font-weight:700;letter-spacing:-.01em;color:var(--ink)}
+ .first-mobile h1{margin:10px 0 0;font-size:32px;line-height:1.3;font-weight:700;letter-spacing:-.01em;color:var(--ink)}
  .first-mobile p{margin:16px 0 0;font-size:15px;line-height:1.6;color:var(--muted)}
- .first-mobile .primary{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:52px;margin-top:28px;font-size:16px;font-weight:600}
+ .first-mobile .primary{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:40px;padding-block:0;margin-top:28px;font-size:16px;font-weight:600}
  .first-mobile .primary .ui-icon{width:18px;height:18px;flex-basis:18px}
  .first-mobile .text-action{width:100%;min-height:48px;margin-top:6px;border-color:transparent;background:transparent;color:var(--ink);font-size:15px;font-weight:600}
  .first-mobile h2{margin:40px 0 14px;font-size:13px;font-weight:500;color:var(--muted)}
- .first-mobile ol{display:flex;flex-direction:column;gap:14px;margin:0;padding:0;list-style:none}
- .first-mobile li{display:flex;align-items:center;gap:14px;font-size:15px;color:var(--ink)}
- .first-mobile li b{display:inline-flex;align-items:center;justify-content:center;flex:0 0 30px;height:30px;border-radius:50%;background:var(--gold-soft);color:var(--gold-text);font-size:13px;font-weight:700}
+ .first-mobile ol{display:flex;flex-direction:column;gap:2px;margin:0;padding:0;list-style:none}
+ .first-mobile li{display:flex;align-items:center;gap:14px;min-height:36px;font-size:15px;color:var(--ink)}
+ .first-mobile li b{display:inline-flex;align-items:center;justify-content:center;flex:0 0 32px;height:32px;border-radius:50%;background:var(--gold-soft);color:var(--gold-text);font-size:13px;font-weight:700}
  body[data-first-time] #mobile-nav{display:none!important}
  body[data-first-time]{padding-bottom:calc(32px + env(safe-area-inset-bottom))}
 }
