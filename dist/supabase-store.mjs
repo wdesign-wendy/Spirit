@@ -18,7 +18,11 @@ export function createSupabaseStore({client,userId,projectId,storage,emptyState,
   async function owner(){check();const {data,error}=await deadline(client.auth.getUser());check();if(error||data?.user?.id!==userId)throw failure('로그인이 만료되었거나 계정이 바뀌었습니다. 다시 로그인해 주세요.','auth');const access=await deadline(client.rpc('spirit_access_status'));check();if(access.error)throw apiError(access.error);if(access.data!==true){invalidated=true;vault.lock();onAccessDenied?.();throw failure('접근 권한이 취소되었거나 허용되지 않은 계정입니다.','denied');}}
 
   const store={
-    kind:'supabase', userId, lastChapterKey:prefix+':last-chapter', backupKey:prefix+':plain-before-restore',
+    kind:'supabase', userId,
+    async fetchDefaultChapters(){
+      // No storage cache or saved-version changes; RLS checks current invitation membership.
+      await owner();try{const r=await deadline(client.from('spirit_default_chapters').select('stage,chapter,title_ko,title_en,mode,body,updated_at').order('stage').order('chapter'));check();if(r.error||!Array.isArray(r.data))return [];const seen=new Set();return r.data.filter(row=>{const id=row.stage+'/'+row.chapter;if(seen.has(id)||!Number.isInteger(row.stage)||row.stage<1||row.stage>5||!Number.isInteger(row.chapter)||row.chapter<1||row.chapter>10||typeof row.title_ko!=='string'||!row.title_ko.trim()||row.title_ko.length>120||typeof row.title_en!=='string'||!['bilingual','ko','en'].includes(row.mode))return false;if(row.body!==null&&!toState({format:'spirit-v2',collections:[{id:'template',name:'template',mode:'bilingual',order:0,chapters:[{id:'chapter',title:'',order:0,mode:row.mode}]}],documents:{'template/chapter':row.body},trash:[]}))return false;seen.add(id);return true}).map(row=>clone(row));}catch(e){check();return []}
+    }, lastChapterKey:prefix+':last-chapter', backupKey:prefix+':plain-before-restore',
     async clearAccountCache(){this.invalidate();await writeQueue.catch(()=>{});for(const key of [draftKey,this.backupKey,this.lastChapterKey])storage.removeItem(key);},
     invalidate(){invalidated=true;vault.lock();},
     savedState(){check();return saved?clone(saved.state):null;},

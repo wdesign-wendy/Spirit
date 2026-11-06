@@ -891,6 +891,10 @@ body[data-view="home"] #view-navigation{display:none}
  .auth-form-side{padding:48px 32px}
  .auth-pitch h2{font-size:clamp(28px,3.05vw,40px)}
 }
+@media(min-width:1441px){
+ .auth-gate{--auth-gutter:calc((100vw - 1440px)/2);padding-inline:var(--auth-gutter);background:linear-gradient(90deg,var(--paper) calc(100% - 640px - var(--auth-gutter)),var(--manuscript) 0)}
+ .auth-form-side{background:transparent}
+}
 @media(max-width:700px){
  .auth-gate{display:flex;flex-direction:column;align-items:stretch;min-height:100dvh;padding:56px 24px 32px;gap:0}
  .auth-brand-side{min-height:0;padding:0;display:block}
@@ -912,3 +916,27 @@ body[data-view="home"] #view-navigation{display:none}
 }
 
 @media(min-width:701px) and (max-width:1100px){.auth-brand svg{width:84px}}
+
+/* Shared defaults — D1–D5, Espresso. No manuscript text lives in static assets. */
+.default-stage-count{display:block;font-size:11px;color:#6B5F55;font-weight:400}
+.default-chip{flex:none;background:#F3EFE9;color:#2E2621;border-radius:999px;padding:5px 10px;font-size:12px;white-space:nowrap}
+.default-chapter:disabled{opacity:.65;cursor:default}
+.default-reader{max-width:1120px;margin:auto}
+.default-reader-tools{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:18px}
+.default-readonly{font-size:13px;color:#6B5F55}
+.default-notice{padding:20px 24px;background:#F3EFE9;border-radius:16px;margin-bottom:20px}
+.default-notice h2{font-size:14px;margin:0 0 8px;color:#2E2621}
+.default-notice p,.default-practice-note{font-size:13px;line-height:1.7;color:#6B5F55;margin:0}
+.default-text{background:#FFFEFD;border-radius:16px;padding:24px 30px}
+.default-text h3{font-size:20px;line-height:1.5;margin:28px 0 12px}
+.default-text p{display:flex;gap:16px;margin:0;padding:16px 0;border-bottom:1px solid rgba(0,0,0,.1);font-size:var(--reading-size,17px);line-height:1.85;white-space:pre-wrap;overflow-wrap:anywhere}
+.default-text p>span:last-child{min-width:0;flex:1}
+.default-text p:last-child{border:0}
+.default-actions{display:flex;gap:12px;margin:20px 0 12px}
+.default-actions button{flex:1}
+body:has(.default-reader) #chapter-manage{display:none}
+@media(max-width:700px){.default-chip{font-size:11px;padding:4px 7px}.default-reader-tools{margin-bottom:16px}.default-notice{padding:18px 16px}.default-text{padding:12px 16px}.default-text p{gap:10px;font-size:17px}.default-text h3{font-size:18px}.default-actions{gap:8px}.default-actions button{padding-inline:12px}.default-stage-count{display:none}.chapter-item .chapter-name{min-width:0;overflow-wrap:anywhere}}
+.default-copy-sheet #storage-status,.default-copy-sheet #storage-close{display:none}
+.default-copy-sheet #storage-actions{display:flex;gap:12px}
+.default-copy-sheet #storage-actions button{flex:1}
+@media(max-width:700px){ #storage-dialog.default-copy-sheet{position:fixed;inset:auto 0 0;width:100%;max-width:100%;margin:0;border:0;border-radius:24px 24px 0 0;padding:24px 20px calc(24px + env(safe-area-inset-bottom));box-sizing:border-box} #storage-dialog.default-copy-sheet::backdrop{background:rgba(46,38,33,.4)}}
