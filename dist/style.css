@@ -755,12 +755,8 @@ body[data-view="review"] :is(.chapterbar,.tabs,#breadcrumb){display:none}
 @media(min-width:1024px){.outline-columns.is-single .outline-card:not(.is-editing) .outline-list{gap:4px}.outline-columns.is-single .outline-row.is-cue .outline-text{font-style:normal;font-size:13px;padding-left:4px}}
 .source-selectors .paragraph-merge{grid-column:1/-1;justify-self:end;display:inline-flex;align-items:center;gap:6px;min-height:40px;margin-top:-6px;padding:0 4px;font-size:13px;font-weight:600;color:var(--ink)}.source-selectors .paragraph-merge .ui-icon{width:16px;height:16px;flex-basis:16px}.sentence-menu-panel button:disabled{opacity:.4}
 
-/* Screen navigation: available beside the breadcrumb on desktop and mobile. */
-#view-navigation{display:flex;gap:4px;flex:none;margin-right:12px}
-#view-navigation button{width:34px;height:34px;padding:0;border-radius:50%;background:var(--soft);color:var(--ink);font-size:20px;line-height:1}
-#view-navigation button:disabled{opacity:.3;cursor:default}
+/* Keep the breadcrumb flexible beside header actions. */
 header #breadcrumb{margin-right:auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-@media(max-width:700px){#view-navigation{margin-right:6px;gap:2px}#view-navigation button{width:32px;height:32px}}
 @media(max-width:700px){body[data-view="review"] .review-back{margin-top:8px}}
 
 /* Login progress remains visible until authorized manuscripts finish loading. */
@@ -769,8 +765,7 @@ header #breadcrumb{margin-right:auto;min-width:0;overflow:hidden;text-overflow:e
 .auth-gate[aria-busy="true"] input{opacity:.65}
 @keyframes auth-spin{to{transform:rotate(360deg)}}
 @media(prefers-reduced-motion:reduce){#auth-submit.is-loading::before{animation:none}}
-/* Home (2026-11-05): "Today's Practice" title, no date; screen-history arrows hidden on home only. */
-body[data-view="home"] #view-navigation{display:none}
+/* Home (2026-11-05): "Today's Practice" title, no date; native browser history handles screen navigation. */
 .home:not(.is-first) .home-head h1{font-size:40px;line-height:1.2;letter-spacing:-.01em}
 @media(max-width:700px){
  .home:not(.is-first) .home-head h1{font-size:36px}
