@@ -976,6 +976,8 @@ body:is([data-view="practice"],[data-view="rehearse"]) .stage-empty{color:var(--
 .chapterbar>#back-list .ui-icon{width:20px;height:20px}
 body:is([data-view="practice"],[data-view="rehearse"]) .chapterbar>#back-list{background:var(--stage-raised);color:var(--stage-text)}
 @media(min-width:701px){body[data-view="library"] .chapterbar>#back-list{display:none}}
+/* 언어 카드 상단 버튼: 편집/완료와 저장을 같은 높이·알약 모양으로 통일, 아이콘 없음 (2026-11-11) */
+.outline-card-actions .card-edit-toggle,.outline-card-actions .save-action .primary{box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:0 18px;border-radius:999px;font-size:13px;font-weight:600;line-height:1}
 /* 문장 입력칸: 선 없는 채움형, 내용만큼만 늘어나고 크기 조절 손잡이 없음 (2026-11-10) */
 .outline-card.is-editing .outline-edit textarea,.outline-edit textarea{box-sizing:border-box;width:100%;min-height:56px;padding:14px 16px;resize:none;field-sizing:content;border:1px solid transparent;border-radius:14px;background:var(--selected);color:var(--ink);font:inherit;font-size:15px;line-height:1.6}
 .outline-edit textarea:focus{background:var(--manuscript);border-color:var(--gold)}
