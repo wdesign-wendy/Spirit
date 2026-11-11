@@ -755,12 +755,8 @@ body[data-view="review"] :is(.chapterbar,.tabs,#breadcrumb){display:none}
 @media(min-width:1024px){.outline-columns.is-single .outline-card:not(.is-editing) .outline-list{gap:4px}.outline-columns.is-single .outline-row.is-cue .outline-text{font-style:normal;font-size:13px;padding-left:4px}}
 .source-selectors .paragraph-merge{grid-column:1/-1;justify-self:end;display:inline-flex;align-items:center;gap:6px;min-height:40px;margin-top:-6px;padding:0 4px;font-size:13px;font-weight:600;color:var(--ink)}.source-selectors .paragraph-merge .ui-icon{width:16px;height:16px;flex-basis:16px}.sentence-menu-panel button:disabled{opacity:.4}
 
-/* Screen navigation: available beside the breadcrumb on desktop and mobile. */
-#view-navigation{display:flex;gap:4px;flex:none;margin-right:12px}
-#view-navigation button{width:34px;height:34px;padding:0;border-radius:50%;background:var(--soft);color:var(--ink);font-size:20px;line-height:1}
-#view-navigation button:disabled{opacity:.3;cursor:default}
+/* Keep the breadcrumb flexible beside header actions. */
 header #breadcrumb{margin-right:auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-@media(max-width:700px){#view-navigation{margin-right:6px;gap:2px}#view-navigation button{width:32px;height:32px}}
 @media(max-width:700px){body[data-view="review"] .review-back{margin-top:8px}}
 
 /* Login progress remains visible until authorized manuscripts finish loading. */
@@ -769,8 +765,7 @@ header #breadcrumb{margin-right:auto;min-width:0;overflow:hidden;text-overflow:e
 .auth-gate[aria-busy="true"] input{opacity:.65}
 @keyframes auth-spin{to{transform:rotate(360deg)}}
 @media(prefers-reduced-motion:reduce){#auth-submit.is-loading::before{animation:none}}
-/* Home (2026-11-05): "Today's Practice" title, no date; screen-history arrows hidden on home only. */
-body[data-view="home"] #view-navigation{display:none}
+/* Home (2026-11-05): "Today's Practice" title, no date; native browser history handles screen navigation. */
 .home:not(.is-first) .home-head h1{font-size:40px;line-height:1.2;letter-spacing:-.01em}
 @media(max-width:700px){
  .home:not(.is-first) .home-head h1{font-size:36px}
@@ -797,7 +792,7 @@ body[data-view="home"] #view-navigation{display:none}
 /* 새 발표 dialog (Figma 09 · N1–N4): centered modal on PC, bottom sheet on mobile. */
 .newpres{border:0;padding:0;border-radius:24px;width:min(440px,calc(100% - 40px));max-height:calc(100dvh - 40px);background:var(--manuscript);color:var(--ink);box-shadow:0 15px 60px rgba(43,30,23,.18);font-family:Pretendard,-apple-system,sans-serif}
 .newpres::backdrop{background:rgba(43,30,23,.4)}
-.newpres-form{display:flex;flex-direction:column;gap:18px;padding:26px 22px 20px}
+.newpres-form{display:flex;flex-direction:column;gap:18px;padding:26px 24px 20px}
 .newpres-head{display:flex;align-items:center;justify-content:space-between}
 .newpres-head h2{margin:0;font-size:20px;font-weight:700;letter-spacing:-.01em}
 .newpres-head .text-action{min-height:40px;padding:0 10px;border-color:transparent;background:transparent;color:var(--ink);font-size:14px;font-weight:600}
@@ -826,7 +821,7 @@ body[data-view="home"] #view-navigation{display:none}
 .np-create{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:48px;font-size:15px;font-weight:600}
 .np-create .ui-icon{width:18px;height:18px;flex-basis:18px}
 .np-custom{align-self:center;min-height:40px;padding:0 8px;border-color:transparent;background:transparent;color:var(--muted);font-size:13px;text-decoration:underline;text-underline-offset:3px}
-@media(max-width:700px){.newpres{width:100%;max-width:none;margin:auto 0 0;border-radius:24px 24px 0 0;max-height:92dvh}.newpres-form{padding:24px 20px calc(20px + env(safe-area-inset-bottom))}}
+@media(max-width:700px){.newpres{width:100%;max-width:none;margin:auto 0 0;border-radius:24px 24px 0 0;max-height:92dvh}.newpres-form{padding:24px 24px calc(20px + env(safe-area-inset-bottom))}}
 /* Mobile header: Phosphor gear (설정) instead of ⋯, 22px, no circle. */
 @media(max-width:700px){
  .mobile-global-menu>summary,body:is([data-view="practice"],[data-view="rehearse"]) .mobile-global-menu>summary{display:flex;align-items:center;justify-content:center;width:44px;height:44px;padding:0;border:0;border-radius:50%;background:transparent;color:var(--ink);box-shadow:none}
@@ -940,3 +935,34 @@ body:has(.default-reader) #chapter-manage{display:none}
 .default-copy-sheet #storage-actions{display:flex;gap:12px}
 .default-copy-sheet #storage-actions button{flex:1}
 @media(max-width:700px){ #storage-dialog.default-copy-sheet{position:fixed;inset:auto 0 0;width:100%;max-width:100%;margin:0;border:0;border-radius:24px 24px 0 0;padding:24px 20px calc(24px + env(safe-area-inset-bottom));box-sizing:border-box} #storage-dialog.default-copy-sheet::backdrop{background:rgba(46,38,33,.4)}}
+
+/* 발표/장 관리 버튼: 내용 너비 알약, 평소에도 테두리로 구분 (2026-11-06) */
+#chapter-manage{display:flex}
+#chapter-manage:empty{display:none}
+.manage-menu{width:fit-content}
+.manage-menu>summary{min-height:36px;padding:7px 16px;gap:6px;border:1px solid var(--line);border-radius:999px;background:var(--manuscript);color:var(--ink);font-size:13px;font-weight:600;line-height:1.4}
+.manage-menu>summary .ui-icon{width:16px;height:16px;color:var(--muted)}
+.manage-menu>summary:hover,.manage-menu[open]>summary{background:var(--selected);color:var(--ink)}
+.manage-menu>summary:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+body[data-view="practice"] #chapter-manage,body[data-view="rehearse"] #chapter-manage,body:has(.default-reader) #chapter-manage{display:none}
+
+.tabs [hidden],.mobile-nav [hidden]{display:none!important}
+
+/* 장 목록 줄: 호버 모습(카드 배경 + 얇은 선)을 기본으로, 호버는 선택색 (2026-11-06) */
+.chapter-item{background:var(--manuscript);border:1px solid transparent;border-radius:16px}
+.chapter-item:not(:disabled):hover{background:var(--selected);border-color:transparent}
+.chapter-list{gap:8px}
+
+/* 내 발표 카드: 이름을 크게, 언어명 없이 진행만 (2026-11-06) */
+.pres-text b{font-size:20px;line-height:1.35}
+.pres-text small{font-size:14px}
+@media(max-width:700px){.pres-text b{font-size:18px}.pres-text small{font-size:13px}}
+
+/* 편집 화면은 글자 15px · 줄간격 1.6 고정, 조절 메뉴 숨김 (2026-11-06) */
+body[data-view="edit"]{--script-size:15px;--script-leading:1.6}
+body[data-view="edit"] #reading-prefs{display:none!important}
+
+/* 암기·리허설 다크: 왼쪽 패널 발표 목록 글자가 #stages 규칙(ink)에 덮여 안 보이던 문제 (2026-11-06) */
+body:is([data-view="practice"],[data-view="rehearse"]) #stages .stage{color:var(--stage-dim)}
+body:is([data-view="practice"],[data-view="rehearse"]) #stages .stage:is(.active,:hover),body:is([data-view="practice"],[data-view="rehearse"]) #stages .stage.stage-add{color:var(--stage-text)}
+body:is([data-view="practice"],[data-view="rehearse"]) .stage-empty{color:var(--stage-dim)}
