@@ -314,7 +314,11 @@ function scopedDocuments(saved,current,scope){
  const result=structuredClone(saved);const incoming=current[scope.chapterKey];
  if(!incoming||!['ko','en'].includes(scope.language))throw Error('저장할 대본을 확인하세요.');
  const mode=scope.mode||(incoming.source?.paragraphs?'ko':'bilingual');
- if(!result[scope.chapterKey]){const fresh={ko:'',en:'',confirmed:false,ratings:{}};if(incoming.source)fresh.source=structuredClone(incoming.source);result[scope.chapterKey]=seedFromSource(fresh,mode);}
+ if(!result[scope.chapterKey]){const fresh={ko:'',en:'',confirmed:false,ratings:{}};if(incoming.source)fresh.source=structuredClone(incoming.source);
+  // A new document has no saved paragraph baseline. Its first language save must seed all parts,
+  // otherwise saving a later part silently persists blank earlier ones. Never seed the other language.
+  if(!incoming.source&&incoming.paragraphDrafts){const opposite=scope.language==='ko'?'en':'ko';fresh.paragraphDrafts=incoming.paragraphDrafts.map(p=>({ko:scope.language==='ko'?p.ko:'',en:scope.language==='en'?p.en:'',stale:true,...(typeof p.title==='string'&&{title:p.title}),...(p.sentencePairs&&{sentencePairs:p.sentencePairs.map(r=>({...structuredClone(r),[opposite]:'',stale:true,matchReview:mode==='bilingual'}))})}));fresh[scope.language]=fresh.paragraphDrafts.map(p=>p[scope.language]).join('\n\n');}
+  result[scope.chapterKey]=seedFromSource(fresh,mode);}
  const target=result[scope.chapterKey];let contentChanged=false;
  if(incoming.source&&!target.source)target.source=structuredClone(incoming.source);
  const blocks=target.source?.blocks,own=!blocks;for(const field of ['title','reference'])if(own&&field in incoming)target[field]=incoming[field];
