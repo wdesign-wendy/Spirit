@@ -1005,3 +1005,6 @@ body:is([data-view="practice"],[data-view="rehearse"]) .chapterbar>#back-list{ba
 .source-browser .original-paragraph,.source-browser .original-paragraph:not([open]),.source-browser .compose-reference{margin-top:6px}
 .source-browser .original-paragraph>summary,.source-browser .compose-reference>summary{padding:4px 0}
 @media(max-width:700px){.source-browser{padding:16px}.source-browser .source-selectors:has(.paragraph-merge){row-gap:8px}.source-browser .source-selectors:has(.paragraph-merge)>label:has(#block-select){grid-column:1/-1}.source-browser .source-selectors .paragraph-merge{grid-column:1/-1;justify-self:end}}
+
+/* 장 제목·배지 수평 정렬 (2026-11-12): 1행 h1 margin(10px 0 26px, 4행 연습·리허설 15px, 7행 목록 0)이 flex 줄 안에서 위아래가 달라 배지가 제목 글자보다 아래로 밀렸다. 배지가 보이는 701px 이상에서 같은 간격을 줄 padding으로 옮기고 h1 margin은 0 */
+@media(min-width:701px){.chapterbar>div:has(>#stageLabel){padding:10px 0 26px}.chapterbar>div:has(>#stageLabel)>h1{margin:0}body:is([data-view="practice"],[data-view="rehearse"]) .chapterbar>div:has(>#stageLabel){padding-bottom:15px}body[data-view="library"] .chapterbar>div:has(>#stageLabel){padding-bottom:0}}
