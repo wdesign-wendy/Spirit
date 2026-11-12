@@ -994,3 +994,14 @@ body:is([data-view="practice"],[data-view="rehearse"]) .chapterbar>#back-list{ba
 .truth-paragraph>.part-title:first-child{margin-top:0}
 .study .card .part-label{color:var(--stage-dim)}
 .rehearsal .rehearsal-line.is-part{opacity:1;margin-top:24px;font-size:13px;font-style:normal;font-weight:600;color:var(--stage-dim);cursor:default}
+
+/* 문단 선택 한 줄 행·여백 축소 (2026-11-12): 문단 select와 '다음 문단과 합치기'를 한 행에. 756행 .paragraph-merge(margin-top:-6px)와 6·58행 .source-selectors를 .source-browser 선택자로 덮는다 */
+.source-browser{padding:20px 24px;margin-bottom:24px}
+.source-browser .source-selectors{margin:14px 0 4px}
+.source-browser .source-selectors:has(.paragraph-merge){grid-template-columns:minmax(0,1fr) auto;column-gap:12px}
+.source-browser .source-selectors:has(.paragraph-merge)>*{grid-column:1/-1}
+.source-browser .source-selectors:has(.paragraph-merge)>label:has(#block-select){grid-column:1}
+.source-browser .source-selectors .paragraph-merge{grid-column:2;align-self:end;margin-top:0;min-height:40px}
+.source-browser .original-paragraph,.source-browser .original-paragraph:not([open]),.source-browser .compose-reference{margin-top:6px}
+.source-browser .original-paragraph>summary,.source-browser .compose-reference>summary{padding:4px 0}
+@media(max-width:700px){.source-browser{padding:16px}.source-browser .source-selectors:has(.paragraph-merge){row-gap:8px}.source-browser .source-selectors:has(.paragraph-merge)>label:has(#block-select){grid-column:1/-1}.source-browser .source-selectors .paragraph-merge{grid-column:1/-1;justify-self:end}}
