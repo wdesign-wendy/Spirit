@@ -966,3 +966,42 @@ body[data-view="edit"] #reading-prefs{display:none!important}
 body:is([data-view="practice"],[data-view="rehearse"]) #stages .stage{color:var(--stage-dim)}
 body:is([data-view="practice"],[data-view="rehearse"]) #stages .stage:is(.active,:hover),body:is([data-view="practice"],[data-view="rehearse"]) #stages .stage.stage-add{color:var(--stage-text)}
 body:is([data-view="practice"],[data-view="rehearse"]) .stage-empty{color:var(--stage-dim)}
+
+/* 발표(단계) 안: 상단 단계 가로 스크롤 대신 왼쪽 위 뒤로가기 하나 (모바일). PC는 왼쪽 패널이 있어 숨김 (2026-11-10) */
+@media(max-width:700px){body[data-view="library"] #stages{display:none}}
+@media(min-width:701px){body[data-view="library"] #back-list{display:none}}
+/* 뒤로가기: 제목 위 왼쪽의 40px 원형 버튼, 그림자·선 없음 (Apple Notes·Wolt 방식, 2026-11-10) */
+.chapterbar>#back-list{display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;min-height:40px;padding:0;margin:0 0 16px;border:0;border-radius:50%;background:var(--selected);color:var(--ink);box-shadow:none}
+.chapterbar>#back-list:hover{background:#ebe5dc}
+.chapterbar>#back-list .ui-icon{width:20px;height:20px}
+body:is([data-view="practice"],[data-view="rehearse"]) .chapterbar>#back-list{background:var(--stage-raised);color:var(--stage-text)}
+@media(min-width:701px){body[data-view="library"] .chapterbar>#back-list{display:none}}
+/* 언어 카드 상단 버튼: 편집/완료와 저장을 같은 높이·알약 모양으로 통일, 아이콘 없음 (2026-11-11) */
+.outline-card-actions .card-edit-toggle,.outline-card-actions .save-action .primary{box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:0 18px;border-radius:999px;font-size:13px;font-weight:600;line-height:1}
+/* 문장 입력칸: 선 없는 채움형, 내용만큼만 늘어나고 크기 조절 손잡이 없음 (2026-11-10) */
+.outline-card.is-editing .outline-edit textarea,.outline-edit textarea{box-sizing:border-box;width:100%;min-height:56px;padding:14px 16px;resize:none;field-sizing:content;border:1px solid transparent;border-radius:14px;background:var(--selected);color:var(--ink);font:inherit;font-size:15px;line-height:1.6}
+.outline-edit textarea:focus{background:var(--manuscript);border-color:var(--gold)}
+.outline-edit textarea::placeholder{color:#a8968a}
+/* 문장 작업: 글자 없는 36px 원형 ··· 버튼 (Claude·ChatGPT 방식, 2026-11-10) */
+.outline-edit-head .sentence-action-menu>summary{width:auto;height:32px;min-height:32px;padding:0 14px;gap:0;justify-content:center;border:0;border-radius:999px;background:var(--selected);color:var(--ink);font-size:13px;font-weight:600;line-height:1}
+.outline-edit-head .sentence-action-menu>summary:hover,.outline-edit-head .sentence-action-menu[open]>summary{background:#ebe5dc}
+.outline-edit-head .sentence-action-menu>summary .ui-icon{width:20px;height:20px}
+
+/* 장 합치기 (2026-11-10): 모바일에서 왼쪽에 놓인 관리 메뉴가 화면 왼쪽 밖으로 열리지 않게 왼쪽 기준으로 연다 */
+@media(max-width:700px){.manage-menu .sentence-menu-panel{left:0;right:auto;max-width:calc(100vw - 32px)}}
+/* 파트 제목 (2026-11-10): 합친 장의 문단 위 원래 장 제목. 표시 전용 */
+.part-title{margin:16px 0 8px;font-size:13px;font-weight:600;line-height:1.4;letter-spacing:-.01em;color:#7A5A22}
+.truth-paragraph>.part-title:first-child{margin-top:0}
+.study .card .part-label{color:var(--stage-dim)}
+.rehearsal .rehearsal-line.is-part{opacity:1;margin-top:24px;font-size:13px;font-style:normal;font-weight:600;color:var(--stage-dim);cursor:default}
+
+/* 문단 선택 한 줄 행·여백 축소 (2026-11-12): 문단 select와 '다음 문단과 합치기'를 한 행에. 756행 .paragraph-merge(margin-top:-6px)와 6·58행 .source-selectors를 .source-browser 선택자로 덮는다 */
+.source-browser{padding:20px 24px;margin-bottom:24px}
+.source-browser .source-selectors{margin:14px 0 4px}
+.source-browser .source-selectors:has(.paragraph-merge){grid-template-columns:minmax(0,1fr) auto;column-gap:12px}
+.source-browser .source-selectors:has(.paragraph-merge)>*{grid-column:1/-1}
+.source-browser .source-selectors:has(.paragraph-merge)>label:has(#block-select){grid-column:1}
+.source-browser .source-selectors .paragraph-merge{grid-column:2;align-self:end;margin-top:0;min-height:40px}
+.source-browser .original-paragraph,.source-browser .original-paragraph:not([open]),.source-browser .compose-reference{margin-top:6px}
+.source-browser .original-paragraph>summary,.source-browser .compose-reference>summary{padding:4px 0}
+@media(max-width:700px){.source-browser{padding:16px}.source-browser .source-selectors:has(.paragraph-merge){row-gap:8px}.source-browser .source-selectors:has(.paragraph-merge)>label:has(#block-select){grid-column:1/-1}.source-browser .source-selectors .paragraph-merge{grid-column:1/-1;justify-self:end}}
