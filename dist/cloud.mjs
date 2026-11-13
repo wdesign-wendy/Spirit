@@ -2,11 +2,53 @@ import {config} from './config.js';
 import {createSupabaseStore} from './supabase-store.mjs';
 import {createVault} from './vault.mjs';
 
+export function validatePasswordChange(password,confirm){
+ if(password.length<8)return '새 비밀번호는 8자 이상으로 입력해 주세요.';
+ if(password!==confirm)return '비밀번호가 서로 달라요. 다시 확인해 주세요.';
+ return '';
+}
+export function passwordChangeError(error){
+ if(error?.status===401||error?.status===403||['session_not_found','session_expired','refresh_token_not_found','refresh_token_already_used','reauthentication_needed','reauthentication_not_valid','user_not_found'].includes(error?.code))return '다시 로그인한 뒤 시도해 주세요.';
+ if(error?.code==='weak_password')return '더 안전한 새 비밀번호를 입력해 주세요. 영문·숫자·기호를 함께 사용해 보세요.';
+ if(error?.code==='same_password')return '현재 비밀번호와 다른 새 비밀번호를 입력해 주세요.';
+ return '비밀번호를 바꾸지 못했어요. 네트워크를 확인하고 다시 시도해 주세요. 계속되면 다시 로그인해 주세요.';
+}
+function passwordChangeDialog(client,onSuccess,isCurrent){
+ const dlg=document.createElement('dialog');dlg.id='password-change';dlg.className='newpres password-change';dlg.setAttribute('aria-labelledby','password-change-title');
+ dlg.innerHTML=`<form class="newpres-form" novalidate>
+ <div class="newpres-head"><h2 id="password-change-title">비밀번호 변경</h2><button type="button" class="text-action" data-password-close>닫기</button></div>
+ ${[['password-new','새 비밀번호'],['password-confirm','새 비밀번호 확인']].map(([id,label])=>`<div class="np-field"><label for="${id}">${label}</label><div class="auth-password-input"><input id="${id}" type="password" autocomplete="new-password" minlength="8" required aria-describedby="password-change-error"><button type="button" class="password-toggle" data-password-toggle="${id}" aria-label="${label} 보기" aria-pressed="false"><img src="icons/auth-eye.svg" alt="" width="18" height="18"></button></div></div>`).join('')}
+ <p id="password-change-error" role="alert"></p><button type="submit" class="primary np-create">확인</button></form>`;
+ document.body.append(dlg);
+ const form=dlg.querySelector('form'),inputs=[...dlg.querySelectorAll('input')],submit=dlg.querySelector('[type="submit"]'),error=dlg.querySelector('[role="alert"]');
+ let busy=false,closed=false;
+ const clear=()=>{for(const input of inputs){input.value='';input.type='password';}for(const toggle of dlg.querySelectorAll('[data-password-toggle]')){toggle.setAttribute('aria-pressed','false');toggle.setAttribute('aria-label',dlg.querySelector('#'+toggle.dataset.passwordToggle).labels[0].textContent+' 보기');}};
+ const close=()=>{closed=true;clear();if(dlg.open)dlg.close();dlg.remove();};
+ dlg.querySelector('[data-password-close]').onclick=close;
+ dlg.addEventListener('cancel',event=>{event.preventDefault();close();});
+ dlg.addEventListener('click',event=>{if(event.target===dlg)close();});
+ dlg.addEventListener('close',()=>{closed=true;clear();dlg.remove();});
+ for(const toggle of dlg.querySelectorAll('[data-password-toggle]'))toggle.onclick=()=>{const input=dlg.querySelector('#'+toggle.dataset.passwordToggle),visible=input.type==='password';input.type=visible?'text':'password';toggle.setAttribute('aria-pressed',String(visible));toggle.setAttribute('aria-label',input.labels[0].textContent+(visible?' 숨기기':' 보기'));};
+ form.onsubmit=async event=>{
+  event.preventDefault();if(busy||closed)return;
+  if(!isCurrent()){close();return;}
+  error.textContent=validatePasswordChange(inputs[0].value,inputs[1].value);if(error.textContent)return;
+  busy=true;submit.disabled=true;inputs.forEach(input=>input.disabled=true);submit.textContent='변경 중…';form.setAttribute('aria-busy','true');
+  try{
+   const request=client.auth.updateUser({password:inputs[0].value});clear();
+   const result=await request;if(closed||!isCurrent()){close();return;}if(result.error)throw result.error;
+   close();onSuccess?.('비밀번호를 바꿨어요.');
+  }catch(reason){clear();if(!closed&&isCurrent())error.textContent=passwordChangeError(reason);else close();}
+  finally{busy=false;submit.disabled=false;inputs.forEach(input=>input.disabled=false);submit.textContent='확인';form.setAttribute('aria-busy','false');}
+ };
+ dlg.showModal();inputs[0].focus();return close;
+}
+
 export function cloudMode(location,settings=config){
  const url=new URL(location.href),local=['127.0.0.1','localhost','[::1]'].includes(url.hostname)||url.protocol==='file:';
  return !local||settings.storage==='supabase'||url.searchParams.get('storage')==='cloud'||url.searchParams.has('flow')||/type=(invite|recovery)/.test(url.hash);
 }
-export async function startCloud({helpers,onSessionEnd,beforeLogout,settings=config,createClient:injectedClient}={}){
+export async function startCloud({helpers,onSessionEnd,beforeLogout,onToast,settings=config,createClient:injectedClient}={}){
  const local=['127.0.0.1','localhost','[::1]'].includes(location.hostname)||location.protocol==='file:';
  const controls=document.createElement('div');controls.id='account-controls';controls.className='account-controls';document.querySelector('.header-actions').append(controls);
  const localUrl=new URL(location.href);localUrl.search='';localUrl.hash='';
@@ -49,6 +91,8 @@ export async function startCloud({helpers,onSessionEnd,beforeLogout,settings=con
  const deadline=promise=>{let timer;return Promise.race([promise,new Promise((_,reject)=>timer=setTimeout(()=>reject(Error('network')),10000))]).finally(()=>clearTimeout(timer));};
  let client,activeStore=null,activeVault=null,activeId=null,pending=null,authorizing=false,resolved=false,mode='login',generation=0,checking=false,submitting=false;
  let loadingScripts=false;
+ let closePasswordDialog;
+ window.addEventListener('pagehide',()=>closePasswordDialog?.());
  function progress(label=''){gate.setAttribute('aria-busy',String(!!label));submit.classList.toggle('is-loading',!!label);submit.disabled=!!label||!client;form.querySelectorAll('input').forEach(el=>el.disabled=!!label);q('auth-reset').disabled=!!label;q('auth-switch').disabled=!!label;fresh.disabled=!!label;if(label){submit.textContent=label;tell(label);}else{submit.textContent=submit.dataset.idleLabel||submit.textContent;}}
  let resolveReady;const ready=new Promise(resolve=>resolveReady=resolve);
  const initial=new URL(location.href),hash=new URLSearchParams(initial.hash.slice(1));
@@ -71,6 +115,7 @@ export async function startCloud({helpers,onSessionEnd,beforeLogout,settings=con
  }
  function clearLink(){const u=new URL(location.href);u.hash='';u.searchParams.delete('flow');history.replaceState(null,'',u.href);}
  function endSession(reason='다시 로그인해 주세요.'){
+  closePasswordDialog?.();
   generation++;void activeStore?.clearAccountCache();activeVault?.lock();activeStore=activeVault=null;activeId=null;pending=null;authorizing=false;
   q('auth-password').value='';q('auth-confirm').value='';controls.querySelectorAll('button,.account-email').forEach(n=>n.remove());onSessionEnd?.();show();setMode('login');tell(reason);
   // End authorized access and discard rendered account state. SDK removes its own session.
@@ -98,6 +143,7 @@ export async function startCloud({helpers,onSessionEnd,beforeLogout,settings=con
   activeId=user.id;activeVault=vault;
   activeStore=createSupabaseStore({client,userId:activeId,projectId,storage:localStorage,...helpers,vault,onAccessDenied:()=>endSession('접근 권한이 취소되었습니다.')});
   const email=document.createElement('span');email.className='account-email';email.textContent=user.email||'내 계정';email.title=email.textContent;controls.prepend(email);
+  const changePassword=document.createElement('button');changePassword.type='button';changePassword.textContent='비밀번호 변경';changePassword.className='action-button';changePassword.onclick=()=>{if(!activeId||loadingScripts)return;closePasswordDialog?.();const epoch=generation;closePasswordDialog=passwordChangeDialog(client,onToast,()=>!!activeId&&epoch===generation);};controls.prepend(changePassword);
   
   const logout=document.createElement('button');logout.textContent='로그아웃';logout.className='action-button';logout.onclick=async()=>{logout.disabled=true;try{await beforeLogout?.();await activeStore?.clearAccountCache();const {error}=await client.auth.signOut({scope:'local'});if(error)throw error;}catch{logout.disabled=false;alert('저장 완료와 네트워크를 확인한 뒤 다시 시도해 주세요.');}};controls.prepend(logout);
   loadingScripts=true;show();progress('대본 불러오는 중…');q('auth-title').textContent='대본을 불러오고 있어요';q('auth-description').textContent='잠시만 기다려주세요.';resolved=true;resolveReady({store:activeStore,onLoaded(){loadingScripts=false;progress();hide();},showLoadError(error){loadingScripts=false;progress();show();form.hidden=true;q('auth-reset').hidden=true;q('auth-title').textContent='대본을 열지 못했어요';q('auth-description').textContent='저장된 대본은 변경하지 않았습니다.';tell(error.message);const retry=document.createElement('button');retry.className='primary';retry.textContent='다시 연결';retry.onclick=()=>location.reload();gate.querySelector('.auth-panel').append(retry,logout);}});

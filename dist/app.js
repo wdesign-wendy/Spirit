@@ -663,7 +663,7 @@ async function startApp(){
  try{
   if(location.protocol!=='file:'){
    const {startCloud}=await import('./cloud.mjs');
-   cloud=await startCloud({helpers:{emptyState,toState,pruneState,scopedDocuments},onSessionEnd(){document.querySelector('main').inert=true;document.querySelector('aside').inert=true;sessionEpoch++;viewHistory.reset();stop();defaultRows=[];defaultsEnabled=false;defaultOpen=defaultDraft=null;data=emptyState();colId=chId=null;legacyOffer=null;homeView=true;reviewView=null;libraryView=true;practiceScope=null;outlineEditState={context:'',ko:false,en:false};$('#storage-dialog').close();render();},beforeLogout:async()=>{if(projectSaving)throw Error('saving');}});
+   cloud=await startCloud({helpers:{emptyState,toState,pruneState,scopedDocuments},onToast:toast,onSessionEnd(){document.querySelector('main').inert=true;document.querySelector('aside').inert=true;sessionEpoch++;viewHistory.reset();stop();defaultRows=[];defaultsEnabled=false;defaultOpen=defaultDraft=null;data=emptyState();colId=chId=null;legacyOffer=null;homeView=true;reviewView=null;libraryView=true;practiceScope=null;outlineEditState={context:'',ko:false,en:false};$('#storage-dialog').close();render();},beforeLogout:async()=>{if(projectSaving)throw Error('saving');}});
   }
   if(cloud)store=cloud.store;
   const epoch=sessionEpoch;const {state,legacy,notice}=await store.load();if(epoch!==sessionEpoch)return;
