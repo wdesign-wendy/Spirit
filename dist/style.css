@@ -994,7 +994,6 @@ body:is([data-view="practice"],[data-view="rehearse"]) .chapterbar>#back-list{ba
 .truth-paragraph>.part-title:first-child{margin-top:0}
 .study .card .part-label{color:var(--stage-dim)}
 .rehearsal .rehearsal-line.is-part{opacity:1;margin-top:24px;font-size:13px;font-style:normal;font-weight:600;color:var(--stage-dim);cursor:default}
-
 /* 문단 선택 한 줄 행·여백 축소 (2026-11-12): 문단 select와 '다음 문단과 합치기'를 한 행에. 756행 .paragraph-merge(margin-top:-6px)와 6·58행 .source-selectors를 .source-browser 선택자로 덮는다 */
 .source-browser{padding:20px 24px;margin-bottom:24px}
 .source-browser .source-selectors{margin:14px 0 4px}
@@ -1005,6 +1004,8 @@ body:is([data-view="practice"],[data-view="rehearse"]) .chapterbar>#back-list{ba
 .source-browser .original-paragraph,.source-browser .original-paragraph:not([open]),.source-browser .compose-reference{margin-top:6px}
 .source-browser .original-paragraph>summary,.source-browser .compose-reference>summary{padding:4px 0}
 @media(max-width:700px){.source-browser{padding:16px}.source-browser .source-selectors:has(.paragraph-merge){row-gap:8px}.source-browser .source-selectors:has(.paragraph-merge)>label:has(#block-select){grid-column:1/-1}.source-browser .source-selectors .paragraph-merge{grid-column:1/-1;justify-self:end}}
+/* 장 제목·배지 수평 정렬 (2026-11-12): 1행 h1 margin(10px 0 26px, 4행 연습·리허설 15px, 7행 목록 0)이 flex 줄 안에서 위아래가 달라 배지가 제목 글자보다 아래로 밀렸다. 배지가 보이는 701px 이상에서 같은 간격을 줄 padding으로 옮기고 h1 margin은 0 */
+@media(min-width:701px){.chapterbar>div:has(>#stageLabel){padding:10px 0 26px}.chapterbar>div:has(>#stageLabel)>h1{margin:0}body:is([data-view="practice"],[data-view="rehearse"]) .chapterbar>div:has(>#stageLabel){padding-bottom:15px}body[data-view="library"] .chapterbar>div:has(>#stageLabel){padding-bottom:0}}
 /* 복습·리허설 장 고르기 (2026-11-13): #newpres 대화상자 패턴 재사용, 모바일은 하단 시트 */
 .pick-list{display:flex;flex-direction:column;gap:20px}
 .pick-group{display:flex;flex-direction:column;gap:8px;min-width:0}
@@ -1029,6 +1030,9 @@ body:is([data-view="practice"],[data-view="rehearse"]) .chapterbar>#back-list{ba
 .bilingual-import>summary:focus-visible,.bilingual-import>textarea:focus{outline:2px solid var(--gold-text);outline-offset:2px}
 .bilingual-import>p{font-size:13px;line-height:1.7;color:var(--muted)}
 .bilingual-import>textarea{display:block;max-width:100%;margin-top:16px}
+.bilingual-split-option{display:flex;align-items:center;gap:8px;min-height:44px;font-size:13px;line-height:1.7;cursor:pointer;overflow-wrap:anywhere}
+.bilingual-split-option input{flex:0 0 18px;width:18px;height:18px;margin:0;accent-color:var(--primary)}
+.bilingual-split-option input:focus-visible{outline:2px solid var(--gold-text);outline-offset:2px}
 #bilingual-preview,#bilingual-issues{padding-left:24px;max-height:360px;overflow:auto}
 #bilingual-preview:empty,#bilingual-issues:empty{display:none}
 #bilingual-preview li,#bilingual-issues li{min-width:0;padding:10px 0;overflow-wrap:anywhere;font-size:14px;line-height:1.8}
@@ -1046,3 +1050,29 @@ body:is([data-view="practice"],[data-view="rehearse"]) .chapterbar>#back-list{ba
 .compose-input-method label{min-width:0}
 .compose-input-method span{padding:8px 4px;white-space:normal;text-align:center;overflow-wrap:anywhere}
 #compose-korean[hidden],.compose-bilingual-import[hidden],.compose-bilingual-import>summary{display:none}
+
+/* 로그인한 계정의 비밀번호 변경: 기존 newpres 모달·하단 시트 재사용 */
+.password-change{box-sizing:border-box}
+.password-change .auth-password-input input{min-width:0;padding-right:52px;font-size:16px}
+.password-change .password-toggle{position:absolute;right:2px;top:2px;display:flex;align-items:center;justify-content:center;width:44px;height:44px;padding:0;border:0;border-radius:12px;background:transparent;color:var(--ink)}
+.password-change .password-toggle[aria-pressed="true"]{background:var(--selected)}
+.password-change :is(button,input):focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+#password-change-error{margin:0;font-size:13px;line-height:1.6;color:var(--ink);overflow-wrap:anywhere}
+#password-change-error:empty{display:none}
+
+/* 암기: 선택 문단 범위 안내 */
+.practice-position,.practice-scope-note{display:flex;align-items:center;flex-wrap:wrap;gap:4px 12px;min-width:0}
+body[data-view="practice"] .practice-scope-note small{color:var(--stage-dim);font-size:12px}
+body[data-view="practice"] .practice-scope-note .text-action{min-height:44px;min-width:44px;padding:10px 4px;color:var(--stage-text);white-space:normal}
+
+/* SPIRIT practice quick feedback */
+body[data-view="practice"] .study button{min-height:44px;min-width:44px}
+.practice-status{min-height:44px;display:flex;align-items:center;justify-content:center;gap:8px;color:#F6EDE2}
+.practice-status .ui-icon{color:#5F7A5C}
+
+/* SPIRIT flat chapter choice */
+.np-paragraphs{display:flex;flex-direction:column;gap:10px;min-width:0;margin:0;padding:0;border:0}
+.np-paragraphs legend{margin-bottom:10px;padding:0;font-size:12px;font-weight:600;color:var(--muted)}
+.np-paragraphs .np-seg{grid-template-columns:repeat(2,minmax(0,1fr))}
+.np-paragraphs .np-seg span{min-height:44px}
+.source-browser .paragraph-nav[hidden],.source-selectors label[hidden],.bilingual-split-option[hidden],.practicebar .seg[hidden]{display:none}
