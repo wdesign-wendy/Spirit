@@ -1091,3 +1091,18 @@ body[data-view="practice"] .answer-in{animation:practice-answer-in .4s cubic-bez
 @keyframes practice-press{from{transform:scale(.99)}to{transform:scale(1)}}
 @keyframes practice-answer-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 @media(prefers-reduced-motion:reduce){body[data-view="practice"] .study,body[data-view="practice"] .study *{animation:none!important;transition:none!important}}
+
+/* 내 대본 위·기본 원고 아래 (2026-11-16) */
+.source-browser{padding:16px 24px;margin-bottom:16px}
+.source-browser .source-selectors{margin:10px 0 0;min-width:0}
+.source-browser .source-selectors>*{min-width:0}
+.source-browser .source-selectors select{max-width:100%;box-sizing:border-box}
+.draft-heading{margin-bottom:16px}
+#content>.original-paragraph,#content>.original-paragraph:not([open]),#content>.compose-reference{box-sizing:border-box;width:100%;min-width:0;margin:20px 0 0;padding:16px 24px;background:var(--manuscript);border:1px solid var(--line);border-radius:18px;overflow-wrap:anywhere}
+#content>.original-paragraph .source-columns>div{min-width:0}
+#content>.compose-reference textarea{max-width:100%;background:var(--manuscript)}
+@media(max-width:700px){
+ .mobile-source-picker{margin-bottom:12px}
+ .draft-heading{display:flex;gap:12px;margin-bottom:12px}
+ #content>.original-paragraph,#content>.compose-reference{padding:16px}
+}
