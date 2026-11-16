@@ -571,7 +571,6 @@ function practice(motion='same',pressed=false){const oldBar=$('.study .progress 
  if(action.advance)move(1)
  });
  const toggle=()=>{reveal=!reveal;practice('same',true)};$('#reveal').onclick=toggle;
- $('#content .card').onclick=e=>{if(!e.target.closest('button,a,input,textarea,select,[contenteditable]'))toggle()};
  $('#audio').onclick=()=>{truth&&solo==='ko'?speak(cur.ko,'ko-KR'):speak(cur.en)};
  practiceKeyHandler=e=>{if(e.defaultPrevented||e.repeat||e.altKey||e.ctrlKey||e.metaKey||e.target.closest('input,textarea,select,[contenteditable]')||([' ','Enter'].includes(e.key)&&e.target.closest('button,a,[role="button"]'))||document.querySelector('dialog[open]'))return;if([' ','Enter','ArrowLeft','ArrowRight'].includes(e.key)){e.preventDefault();if(e.key==='ArrowLeft')move(-1);else if(e.key==='ArrowRight')move(1);else toggle()}};
  document.addEventListener('keydown',practiceKeyHandler)}
